@@ -1,0 +1,29 @@
+@import "https://www.nerdfonts.com/assets/css/webfont.css";
+
+:root {
+    --primary-bg-color: #0e0e0e;
+    --primary-color: #fbf1c7;
+    --lowermid-color: #665c54;
+    --highermid-color: #bdae93;
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400;
+    src: url('jetbrains-mono-v24-latin-regular.woff2') format('woff2');
+    font-display: swap;
+}
+
+*{
+    color: var(--primary-color);
+
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono';font-size: 22px;
+}
+
+body{
+    background-color: var(--primary-bg-color);
+
+}

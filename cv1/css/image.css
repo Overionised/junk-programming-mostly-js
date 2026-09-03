@@ -1,0 +1,13 @@
+.image-and-body-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 100px;
+}
+
+
+.images {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

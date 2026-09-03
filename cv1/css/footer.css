@@ -1,0 +1,34 @@
+footer{
+    padding:10px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 100px;
+
+
+}
+
+footer * {
+
+    color: var(--highermid-color);
+    font-size: 80%;
+    text-decoration: none;
+}
+
+.footer-left, .footer-right{
+
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+footer > ul{
+    flex: 1;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    align-self: flex-start;
+
+    list-style: none;
+
+}

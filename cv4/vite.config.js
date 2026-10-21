@@ -1,5 +1,4 @@
 import { defineConfig } from "vite";
-
-export default defineConfig({
-    // https://vitejs.dev/config/
-});
+  export default {
+      optimizeDeps: { exclude: ["@babylonjs/havok"] },
+  };

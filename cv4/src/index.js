@@ -3,17 +3,22 @@ import { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { Animation } from "@babylonjs/core/Animations/animation";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-
-
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import HavokPhysics from "@babylonjs/havok";
+import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
+import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
+import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
+
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
+import "@babylonjs/core/Culling/ray";
+import "@babylonjs/core/Physics/joinedPhysicsEngineComponent";
+import "@babylonjs/core/Physics/v2/physicsEngineComponent";
 
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Helpers/sceneHelpers";
@@ -28,6 +33,7 @@ const engine = new Engine(canvas, true);
 const createScene = () => {
     const scene = new Scene(engine);
 
+    //based on https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction/
     new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
     new DirectionalLight("DirectionalLight", new Vector3(-1, -1, 0), scene);
 
@@ -42,21 +48,87 @@ const createScene = () => {
     skybox.material = skyboxMaterial;
 
 
-    const largeGround = MeshBuilder.CreateGroundFromHeightMap("largeGround", "https://assets.babylonjs.com/environments/villageheightmap.png" /* url to height map */, { width: 150, height: 150, subdivisions: 20, minHeight: 0, maxHeight: 10 });
+    //based on https://doc.babylonjs.com/features/introductionToFeatures/chap2/material/
     const groundMat = new StandardMaterial("groundMat", scene);
-    groundMat.diffuseColor = new Color3(0, 0.5, 0.5);
-    largeGround.material = groundMat;
+    groundMat.diffuseTexture = new Texture("https://assets.babylonjs.com/textures/floor.png", scene);
+
+    const ballMat = new StandardMaterial("ballMat", scene);
+    ballMat.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
+        "textures/Studio_Softbox_2Umbrellas_cube_specular.env",
+        scene
+    );
 
     const ball = MeshBuilder.CreateSphere("ball", {}, scene);
-    ball.position.y = 0.5;
+    ball.position.set(0, 15, 0);
+    ball.material = ballMat;
 
+    let physicsReady = false;
+    let groundReady = false;
+    let physicsBodiesCreated = false;
+    const createPhysicsBodies = () => {
+        if (!physicsReady || !groundReady || physicsBodiesCreated) return;
+        physicsBodiesCreated = true;
+        new PhysicsAggregate(ball, PhysicsShapeType.SPHERE, {
+            mass: 5,
+            restitution: 0.2,
+            friction: 0.05,
+        }, scene);
+        ball.physicsBody.disablePreStep = true;
+        new PhysicsAggregate(largeGround, PhysicsShapeType.MESH, {
+            mass: 0,
+            friction: 0.05,
+        }, scene);
+
+        const halfSkybox = 75;
+        const wallThickness = 2;
+        const walls = [
+            { width: wallThickness, height: 150, depth: 150, x: halfSkybox, y: 0, z: 0 },
+            { width: wallThickness, height: 150, depth: 150, x: -halfSkybox, y: 0, z: 0 },
+            { width: 150, height: 150, depth: wallThickness, x: 0, y: 0, z: halfSkybox },
+            { width: 150, height: 150, depth: wallThickness, x: 0, y: 0, z: -halfSkybox },
+            { width: 150, height: wallThickness, depth: 150, x: 0, y: halfSkybox, z: 0 },
+        ];
+
+        walls.forEach((dimensions, index) => {
+            const wall = MeshBuilder.CreateBox(`skyboxCollider${index}`, dimensions, scene);
+            wall.position.set(dimensions.x, dimensions.y, dimensions.z);
+            wall.isVisible = false;
+            new PhysicsAggregate(wall, PhysicsShapeType.BOX, { mass: 0 }, scene);
+        });
+    };
+    //changed from https://doc.babylonjs.com/features/introductionToFeatures/chap2/material/ because I needed to use Havoc, which is the physics thing
+    const largeGround = MeshBuilder.CreateGroundFromHeightMap("largeGround", "https://assets.babylonjs.com/environments/villageheightmap.png", {
+        width: 150,
+        height: 150,
+        subdivisions: 20,
+        minHeight: 0,
+        maxHeight: 10,
+        onReady: () => {
+            groundReady = true;
+            createPhysicsBodies();
+        },
+    }, scene);
+    largeGround.material = groundMat;
+
+
+    //one to one coppied from https://doc.babylonjs.com/features/featuresDeepDive/physics/usingPhysicsEngine/ with changed names I don't get it I just changed the numbers
+    //this should just initialise physics though
+    HavokPhysics().then((havok) => {
+        scene.enablePhysics(new Vector3(0, -40, 0), new HavokPlugin(true, havok));
+        physicsReady = true;
+        createPhysicsBodies();
+    }).catch((error) => {
+        console.error("Failed to initialize Havok physics:", error);
+    });
+
+    //stolen from https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction/ also 1:1 very simple
     const sun = new DirectionalLight("sun", new Vector3(-1, -2, -1), scene);
-    sun.intensity = 0.8;
-    sun.shadowFrustumSize = 30; // shadow area in world units, instead of the whole 100 km ground
+    sun.intensity = 0.5;
+    sun.shadowFrustumSize = 30;
 
     const shadowGenerator = new ShadowGenerator(2048, sun);
     shadowGenerator.addShadowCaster(ball);
-    shadowGenerator.usePercentageCloserFiltering = true; // softer edges
+    shadowGenerator.usePercentageCloserFiltering = true;
 
     largeGround.receiveShadows = true;
 
@@ -71,26 +143,40 @@ const createScene = () => {
     camera.lockedTarget = ball;
     camera.lowerRadiusLimit = 3;
     camera.upperRadiusLimit = 20;
-    camera.upperBetaLimit = Math.PI / 2 - 0.05; // don't go below the ground
+    camera.upperBetaLimit = Math.PI / 2 - 0.05;
     camera.attachControl(canvas, true);
 
     scene.createDefaultEnvironment({
-        createGround: false,   // you already have a ground
+        createGround: false,
         createSkybox: true,
     });
 
-    // WASD movement so there's something to follow
+    //wasd movement generated by claude sonet 5.5, I did not find documentation :(
     const keys = {};
     window.addEventListener("keydown", (e) => (keys[e.code] = true));
     window.addEventListener("keyup", (e) => (keys[e.code] = false));
 
     scene.onBeforeRenderObservable.add(() => {
         sun.position = ball.position.subtract(sun.direction.normalizeToNew().scale(20));
-        const step = 10 * (engine.getDeltaTime() / 1000);
-        if (keys["KeyW"]) ball.position.z += step;
-        if (keys["KeyS"]) ball.position.z -= step;
-        if (keys["KeyA"]) ball.position.x -= step;
-        if (keys["KeyD"]) ball.position.x += step;
+        const body = ball.physicsBody;
+        if (!body) return;
+
+        const forward = camera.getForwardRay().direction.clone();
+        forward.y = 0;
+        if (forward.lengthSquared() === 0) return;
+        forward.normalize();
+
+        const right = Vector3.Cross(forward, Vector3.Up()).normalize();
+        const input = forward.scale(
+            (keys["KeyW"] ? 1 : 0) - (keys["KeyS"] ? 1 : 0)
+        ).addInPlace(right.scale(
+            (keys["KeyA"] ? 1 : 0) - (keys["KeyD"] ? 1 : 0)
+        ));
+        if (input.lengthSquared() > 0) {
+            input.normalize().scaleInPlace(10);
+            const velocity = body.getLinearVelocity();
+            body.setLinearVelocity(new Vector3(input.x, velocity.y, input.z));
+        }
     });
 
     return scene;

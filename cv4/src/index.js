@@ -49,8 +49,15 @@ const createScene = () => {
 
 
     //based on https://doc.babylonjs.com/features/introductionToFeatures/chap2/material/
+    const groundTex = new Texture("https://assets.babylonjs.com/textures/albedo.png", scene);
+    //added texture scaling
+    groundTex.uScale = 20;
+    groundTex.vScale = 20;
+
     const groundMat = new StandardMaterial("groundMat", scene);
-    groundMat.diffuseTexture = new Texture("https://assets.babylonjs.com/textures/floor.png", scene);
+    //ground mat is the material of the ground, scaled texture is applied
+    groundMat.diffuseTexture = groundTex;
+
 
     const ballMat = new StandardMaterial("ballMat", scene);
     ballMat.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
@@ -78,6 +85,8 @@ const createScene = () => {
             mass: 0,
             friction: 0.05,
         }, scene);
+
+        //adding walls like the skybox pretty much
 
         const halfSkybox = 75;
         const wallThickness = 2;
@@ -180,6 +189,7 @@ const createScene = () => {
     });
 
     return scene;
+
 };
 
 const scene = createScene();

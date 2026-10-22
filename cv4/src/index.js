@@ -69,9 +69,48 @@ const createScene = () => {
     ball.position.set(0, 15, 0);
     ball.material = ballMat;
 
+
+    const collectibles = [];
+
+    const addCollectiblePhysics = (collectible) => {
+        if (collectible.physicsBody) return;
+
+        new PhysicsAggregate(collectible, PhysicsShapeType.BOX, {
+            mass: 10,
+            restitution: 0.2,
+            friction: 10,
+        }, scene);
+        collectible.physicsBody.disablePreStep = true;
+
+
+    };
+
+    // https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+
+    //spawning logic
+    let i = 0;
+    const interval = setInterval(() => {
+        i++;
+        const collectible = MeshBuilder.CreateBox(`collect-${i}`, {size: 5}, scene);
+        collectible.position.set(getRandomInt(0, 150), 30, getRandomInt(0, 150));
+        collectibles.push(collectible);
+        if (physicsReady && groundReady) addCollectiblePhysics(collectible);
+
+    }, 1000)
+
+
+
     let physicsReady = false;
     let groundReady = false;
     let physicsBodiesCreated = false;
+
+
     const createPhysicsBodies = () => {
         if (!physicsReady || !groundReady || physicsBodiesCreated) return;
         physicsBodiesCreated = true;
@@ -81,10 +120,16 @@ const createScene = () => {
             friction: 0.05,
         }, scene);
         ball.physicsBody.disablePreStep = true;
+
+
+
+
         new PhysicsAggregate(largeGround, PhysicsShapeType.MESH, {
             mass: 0,
             friction: 0.05,
         }, scene);
+
+        collectibles.forEach(addCollectiblePhysics);
 
         //adding walls like the skybox pretty much
 
@@ -188,8 +233,7 @@ const createScene = () => {
         }
     });
 
-    return scene;
-
+        return scene;
 };
 
 const scene = createScene();

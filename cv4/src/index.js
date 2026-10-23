@@ -14,6 +14,9 @@ import HavokPhysics from "@babylonjs/havok";
 import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
+import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
+import { AdvancedDynamicTexture, Control, TextBlock } from "@babylonjs/gui";
+
 
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Culling/ray";
@@ -28,14 +31,46 @@ import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new Engine(canvas, true);
+let score = 0;
+
 
 
 const createScene = () => {
     const scene = new Scene(engine);
 
+
+    const ui = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+
+
+    const scoreText = new TextBlock();
+
+    scoreText.text = "Score:" + score;
+    scoreText.color = "green";
+    scoreText.fontSize = 32;
+    scoreText.width = "200px";
+    scoreText.height = "50px";
+    scoreText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+    scoreText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    scoreText.left = "20px";
+    scoreText.top = "20px";
+
+    ui.addControl(scoreText);
+
+
+
+    //glow https://doc.babylonjs.com/features/featuresDeepDive/mesh/glowLayer/
+    const gl = new GlowLayer("glow", scene);
+
+    const glowMaterial = new StandardMaterial("glow", scene);
+    glowMaterial.diffuseColor = new Color3(5, 5, 255);
+    glowMaterial.emissiveColor = new Color3(0, 0, 255);
+
+    let lightintensity = 100;
+
+
     //based on https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction/
-    new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
-    new DirectionalLight("DirectionalLight", new Vector3(-1, -1, 0), scene);
+    const hemilight = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
+    hemilight.intensity = lightintensity/100;
 
     //skybox from: "https://doc.babylonjs.com/features/introductionToFeatures/chap5/sky/"
     const skybox = MeshBuilder.CreateBox("skyBox", { size: 150 }, scene);
@@ -49,7 +84,7 @@ const createScene = () => {
 
 
     //based on https://doc.babylonjs.com/features/introductionToFeatures/chap2/material/
-    const groundTex = new Texture("https://assets.babylonjs.com/textures/albedo.png", scene);
+    const groundTex = new Texture("https://assets.babylonjs.com/textures/amiga.jpg", scene);
     //added texture scaling
     groundTex.uScale = 20;
     groundTex.vScale = 20;
@@ -72,6 +107,13 @@ const createScene = () => {
 
     const collectibles = [];
 
+    const collectibleMat = new StandardMaterial("collectibleMat", scene);
+    collectibleMat.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
+        "textures/textures/Studio_Softbox_2Umbrellas_cube_specular.env",
+        scene
+    );
+
+
     const addCollectiblePhysics = (collectible) => {
         if (collectible.physicsBody) return;
 
@@ -80,6 +122,8 @@ const createScene = () => {
             restitution: 0.2,
             friction: 10,
         }, scene);
+        collectible.material = glowMaterial;
+
         collectible.physicsBody.disablePreStep = true;
 
 
@@ -97,12 +141,19 @@ const createScene = () => {
     let i = 0;
     const interval = setInterval(() => {
         i++;
-        const collectible = MeshBuilder.CreateBox(`collect-${i}`, {size: 5}, scene);
-        collectible.position.set(getRandomInt(0, 150), 30, getRandomInt(0, 150));
+        const collectible = MeshBuilder.CreateBox(`collect-${i}`, {size: 1}, scene);
+        collectible.position.set(getRandomInt(10, 130), 30, getRandomInt(10, 130));
         collectibles.push(collectible);
         if (physicsReady && groundReady) addCollectiblePhysics(collectible);
 
     }, 1000)
+
+    //jumpscare
+    function playjumpscare(){
+
+    }
+
+
 
 
 
@@ -124,6 +175,8 @@ const createScene = () => {
 
 
 
+
+
         new PhysicsAggregate(largeGround, PhysicsShapeType.MESH, {
             mass: 0,
             friction: 0.05,
@@ -134,7 +187,7 @@ const createScene = () => {
         //adding walls like the skybox pretty much
 
         const halfSkybox = 75;
-        const wallThickness = 2;
+        const wallThickness = 3;
         const walls = [
             { width: wallThickness, height: 150, depth: 150, x: halfSkybox, y: 0, z: 0 },
             { width: wallThickness, height: 150, depth: 150, x: -halfSkybox, y: 0, z: 0 },
@@ -149,7 +202,49 @@ const createScene = () => {
             wall.isVisible = false;
             new PhysicsAggregate(wall, PhysicsShapeType.BOX, { mass: 0 }, scene);
         });
+
+        ball.physicsBody.setCollisionCallbackEnabled(true);
+         ball.physicsBody.getCollisionObservable().add((event) => {
+                const otherBody =
+                     event.collider === ball.physicsBody
+                             ? event.collidedAgainst
+                                : event.collider;
+
+              const otherMesh = otherBody.transformNode;
+
+                 if (!otherMesh.name.startsWith("collect-")) {
+                         return;
+                     }
+
+               // This was a collectible collision.
+                const collectibleIndex = collectibles.indexOf(otherMesh);
+                if (collectibleIndex === -1) {
+                    return;
+                }
+
+                collectibles.splice(collectibleIndex, 1);
+                otherMesh.dispose();
+                //spoopy
+                 lightintensity -= 1;
+                 hemilight.intensity = lightintensity/100;
+                 sun.intensity = lightintensity/100;
+
+                 score++;
+                 scoreText.text = "Score:" + score;
+                 console.log("Collected:", lightintensity);
+                 console.log("Collected:", otherMesh.name);
+                 if (score >= 100){
+                     playjumpscare();
+                 }
+
+
+         });
     };
+
+
+
+
+
     //changed from https://doc.babylonjs.com/features/introductionToFeatures/chap2/material/ because I needed to use Havoc, which is the physics thing
     const largeGround = MeshBuilder.CreateGroundFromHeightMap("largeGround", "https://assets.babylonjs.com/environments/villageheightmap.png", {
         width: 150,
@@ -177,7 +272,7 @@ const createScene = () => {
 
     //stolen from https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction/ also 1:1 very simple
     const sun = new DirectionalLight("sun", new Vector3(-1, -2, -1), scene);
-    sun.intensity = 0.5;
+    sun.intensity = lightintensity/100;
     sun.shadowFrustumSize = 30;
 
     const shadowGenerator = new ShadowGenerator(2048, sun);
@@ -204,6 +299,10 @@ const createScene = () => {
         createGround: false,
         createSkybox: true,
     });
+
+
+
+
 
     //wasd movement generated by claude sonet 5.5, I did not find documentation :(
     const keys = {};

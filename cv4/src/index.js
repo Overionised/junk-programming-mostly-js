@@ -31,9 +31,9 @@ import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new Engine(canvas, true);
-let score = 0;
-let time = 20;
-const bonustime = 8;
+let score = 99;
+let time = 30;
+const bonustime = 10;
 const spawntime = 3000;
 
 
@@ -106,6 +106,7 @@ const createScene = () => {
 
 
     const collectibles = [];
+    let gameOverActive = false;
 
     const collectibleMat = new StandardMaterial("collectibleMat", scene);
     collectibleMat.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
@@ -137,7 +138,16 @@ const createScene = () => {
     }
 
     function gameover(){
+        if (gameOverActive) return;
 
+        gameOverActive = true;
+        clearInterval(interval);
+        clearInterval(timer);
+        scoreText.text = "GAME OVER\nScore:" + score;
+
+        if (ball.physicsBody) {
+            ball.physicsBody.setLinearVelocity(Vector3.Zero());
+        }
     }
 
     //spawning logic
@@ -156,16 +166,46 @@ const createScene = () => {
         time--;
         scoreText.text = "Score:" + score + "\nTime:" + time + "s";
 
-        if (time<0){
+        if (time <= 0){
             gameover();
         }
 
     }, 1000)
 
     //jumpscare
-    function playjumpscare(){
 
-    }
+
+        function playjumpscare(){
+            if (gameOverActive) return;
+
+            gameOverActive = true;
+            clearInterval(interval);
+            clearInterval(timer);
+            scoreText.text = "";
+
+            if (ball.physicsBody) {
+                ball.physicsBody.setLinearVelocity(Vector3.Zero());
+            }
+
+            const animation = document.createElement("img");
+            animation.src = "/animation.gif";
+            animation.alt = "Game complete";
+            animation.style.position = "fixed";
+            animation.style.inset = "0";
+            animation.style.width = "100vw";
+            animation.style.height = "100vh";
+            animation.style.objectFit = "cover";
+            animation.style.zIndex = "9999";
+            animation.style.pointerEvents = "none";
+
+            document.body.appendChild(animation);
+            const jumpscaresfx = new Audio("/animationsfx.gif");
+            jumpscaresfx.play().catch((err) => {
+                console.log(err);
+            })
+        }
+
+
 
 
 
@@ -253,7 +293,7 @@ const createScene = () => {
                  console.log("time:", time);
 
                  //game clear
-                 if (score >= 100){
+                 if (score > 99){
 
                      playjumpscare();
                  }
@@ -334,6 +374,8 @@ const createScene = () => {
 
     scene.onBeforeRenderObservable.add(() => {
         sun.position = ball.position.subtract(sun.direction.normalizeToNew().scale(20));
+        if (gameOverActive) return;
+
         const body = ball.physicsBody;
         if (!body) return;
 

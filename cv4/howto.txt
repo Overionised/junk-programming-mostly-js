@@ -1,0 +1,55 @@
+Playing a full-screen GIF animation
+===================================
+
+1. Put the GIF in:
+
+   cv4/public/animation.gif
+
+   Files in `public` are served from the site root by Vite, so the browser
+   URL will be `/animation.gif`.
+
+2. Replace the empty `playjumpscare()` function in `src/index.js` with:
+
+   function playjumpscare(){
+       if (gameOverActive) return;
+
+       gameOverActive = true;
+       clearInterval(interval);
+       clearInterval(timer);
+       scoreText.text = "";
+
+       if (ball.physicsBody) {
+           ball.physicsBody.setLinearVelocity(Vector3.Zero());
+       }
+
+       const animation = document.createElement("img");
+       animation.src = "/animation.gif";
+       animation.alt = "Game complete";
+       animation.style.position = "fixed";
+       animation.style.inset = "0";
+       animation.style.width = "100vw";
+       animation.style.height = "100vh";
+       animation.style.objectFit = "cover";
+       animation.style.zIndex = "9999";
+       animation.style.pointerEvents = "none";
+
+       document.body.appendChild(animation);
+   }
+
+The GIF starts playing automatically when the image is added. `position:
+fixed`, `inset: 0`, and the viewport dimensions make it cover the whole
+browser window. `objectFit = "cover"` fills the screen without distortion,
+although it may crop the edges.
+
+If the animation is an MP4 or WebM instead of a GIF, use a video element:
+
+   const animation = document.createElement("video");
+   animation.src = "/animation.mp4";
+   animation.autoplay = true;
+   animation.loop = false;
+   animation.muted = true;
+   animation.playsInline = true;
+
+Apply the same style properties and append it to `document.body`. Keep
+`muted = true` if the video has sound; browsers usually block autoplay with
+audio until the user interacts with the page.

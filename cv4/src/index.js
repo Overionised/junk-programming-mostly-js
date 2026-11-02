@@ -16,6 +16,8 @@ import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
 import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 import { AdvancedDynamicTexture, Control, TextBlock } from "@babylonjs/gui";
+import { CreateSoundAsync } from "@babylonjs/core/AudioV2/abstractAudio/audioEngineV2";
+import { CreateAudioEngineAsync } from "@babylonjs/core/AudioV2/webAudio/webAudioEngine";
 
 
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -30,12 +32,26 @@ import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 
 const canvas = document.getElementById("renderCanvas");
-const engine = new Engine(canvas, true);
-let score = 99;
-let time = 30;
-const bonustime = 10;
-const spawntime = 3000;
+const audioEngine = await CreateAudioEngineAsync();
 
+const engine = new Engine(canvas, true);
+let score = 0;
+let time = 30;
+const bonustime = 7;
+const spawntime = 3000;
+const pickup = await CreateSoundAsync("pickup", "/sounds/TargetLock.wav", {}, audioEngine);
+const jumpscare = await CreateSoundAsync("jumpscare", "/sounds/jumpscare.mp3", {}, audioEngine);
+
+const ost = await CreateSoundAsync("ost", "sounds/ost.mp3", { loop: true });
+ost.play();
+const unlockAudio = () => {
+    audioEngine.unlockAsync().catch((error) => {
+        console.error("Failed to unlock audio engine:", error);
+    });
+};
+
+window.addEventListener("pointerdown", unlockAudio, { once: true });
+window.addEventListener("keydown", unlockAudio, { once: true });
 
 const createScene = () => {
     const scene = new Scene(engine);
@@ -186,6 +202,7 @@ const createScene = () => {
             if (ball.physicsBody) {
                 ball.physicsBody.setLinearVelocity(Vector3.Zero());
             }
+            jumpscare.play();
 
             const animation = document.createElement("img");
             animation.src = "/animation.gif";
@@ -199,10 +216,6 @@ const createScene = () => {
             animation.style.pointerEvents = "none";
 
             document.body.appendChild(animation);
-            const jumpscaresfx = new Audio("/animationsfx.gif");
-            jumpscaresfx.play().catch((err) => {
-                console.log(err);
-            })
         }
 
 
@@ -291,6 +304,11 @@ const createScene = () => {
                  console.log("Collected:", otherMesh.name);
                  console.log("score:", score);
                  console.log("time:", time);
+
+                // Wait until audio engine is ready to play sounds.
+
+
+                pickup.play();
 
                  //game clear
                  if (score > 99){

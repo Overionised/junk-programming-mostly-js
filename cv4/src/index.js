@@ -293,11 +293,11 @@ const createScene = () => {
                 collectibles.splice(collectibleIndex, 1);
                 otherMesh.dispose();
                 //spoopy
-                 lightintensity -= 1;
+                 lightintensity -= 2;
                  hemilight.intensity = lightintensity/100;
                  sun.intensity = lightintensity/100;
 
-                 score++;
+                 score = score+2;
                  time += bonustime;
                  scoreText.text = "Score:" + score + "\nTime:" + time + "s";
                  console.log("intensity:", lightintensity);

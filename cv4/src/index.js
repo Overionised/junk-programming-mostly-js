@@ -33,16 +33,17 @@ import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 const canvas = document.getElementById("renderCanvas");
 const audioEngine = await CreateAudioEngineAsync();
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 const engine = new Engine(canvas, true);
 let score = 0;
 let time = 30;
 const bonustime = 7;
 const spawntime = 3000;
-const pickup = await CreateSoundAsync("pickup", "/sounds/TargetLock.wav", {}, audioEngine);
-const jumpscare = await CreateSoundAsync("jumpscare", "/sounds/jumpscare.mp3", {}, audioEngine);
+const pickup = await CreateSoundAsync("pickup", assetUrl("sounds/TargetLock.wav"), {}, audioEngine);
+const jumpscare = await CreateSoundAsync("jumpscare", assetUrl("sounds/jumpscare.mp3"), {}, audioEngine);
 
-const ost = await CreateSoundAsync("ost", "sounds/ost.mp3", { loop: true });
+const ost = await CreateSoundAsync("ost", assetUrl("sounds/ost.mp3"), { loop: true });
 ost.play();
 const unlockAudio = () => {
     audioEngine.unlockAsync().catch((error) => {
@@ -205,7 +206,7 @@ const createScene = () => {
             jumpscare.play();
 
             const animation = document.createElement("img");
-            animation.src = "/animation.gif";
+            animation.src = assetUrl("animation.gif");
             animation.alt = "Game complete";
             animation.style.position = "fixed";
             animation.style.inset = "0";

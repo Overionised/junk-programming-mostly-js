@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 1024 768" version="1.1" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" xml:space="preserve" id="svg6" sodipodi:docname="logo-white.svg" inkscape:version="1.4.3 (0d15f75042, 2025-12-25)" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview id="namedview6" pagecolor="#505050" bordercolor="#eeeeee" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#505050" inkscape:zoom="0.69795846" inkscape:cx="578.11463" inkscape:cy="414.78113" inkscape:window-width="1900" inkscape:window-height="1030" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg6"/>
+<defs id="defs1">
+<style id="style1">g[clip-path] &gt; * {vector-effect: non-scaling-stroke;}</style>
+<clipPath id="clipId0">
+<path d="M0,768 1024,768 1024,0 0,0 z" id="path1"/>
+</clipPath>
+</defs>
+<g clip-path="url(#clipId0)" fill="none" stroke="rgb(255,255,255)" stroke-width="1px" id="g1"/>
+<g clip-path="url(#clipId0)" fill="none" stroke="rgb(255,255,255)" stroke-width="1px" id="g6">
+
+
+
+
+
+
+
+
+
+</g>
+<path d="m 716.21111,202.03185 a 147.726,147.726 0 1 0 76.77199,102.698" id="path2" style="fill:none;stroke:#fbf1c7;stroke-opacity:1;stroke-width:8;stroke-dasharray:none"/><path id="circle3" style="fill:none;stroke:#fbf1c7;stroke-width:10;stroke-dasharray:none" d="M 594.40714,474.75583 A 287.46301,287.46301 0 0 1 306.94412,762.21884 287.46301,287.46301 0 0 1 19.48111,474.75583 287.46301,287.46301 0 0 1 306.94412,187.29282 287.46301,287.46301 0 0 1 594.40714,474.75583 Z"/><path id="polyline4" style="fill:none;stroke:#fbf1c7;stroke-width:10.23727202;stroke-dasharray:none" transform="matrix(1.154561,0,0,1,-25.004489,1.747849)" d="M 185.411,528.15 H 771.729"/><path id="polyline5" style="vector-effect:non-scaling-stroke;fill:#fbf1c7;stroke:#fbf1c7" transform="translate(3.5731083,1.747849)" d="M 712.638,302.982 H 1008.09 V 7.52941 H 712.638 V 302.982"/><path id="circle5" style="fill:none;stroke:#fbf1c7;stroke-width:10;stroke-dasharray:none" d="m 952.57401,529.89789 a 88.635902,88.635902 0 0 1 -88.6359,88.6359 88.635902,88.635902 0 0 1 -88.6359,-88.6359 88.635902,88.635902 0 0 1 88.6359,-88.6359 88.635902,88.635902 0 0 1 88.6359,88.6359 z"/><path id="circle6" style="fill:#fbf1c7;stroke:#fbf1c7;stroke-width:6;stroke-dasharray:none" d="m 188.98381,529.89789 a 14.7727,14.7727 0 0 1 -14.7727,14.7727 14.7727,14.7727 0 0 1 -14.7727,-14.7727 14.7727,14.7727 0 0 1 14.7727,-14.7727 14.7727,14.7727 0 0 1 14.7727,14.7727 z"/><path id="polyline6" style="fill:none;stroke:#fbf1c7;stroke-width:11;stroke-dasharray:none" transform="translate(3.5731083,1.747849)" d="M 183.634,521.125 712.638,235.123"/></svg>
